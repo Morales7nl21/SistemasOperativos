@@ -1,0 +1,5 @@
+tuberia_comando.c
+tuberia_comando
+dup.c
+dup
+archivo.txt
