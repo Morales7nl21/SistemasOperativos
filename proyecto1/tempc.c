@@ -666,3 +666,127 @@ int extrae_argumentos_general(char *orig, char *delim, char *args[], int max_arg
 
 }
 */
+
+int extrae_argumentos_general(char *orig, char *delim, char *args[], int max_args, int* IOFlag, int modo,char *cad){
+	
+	char *tmp;
+	int num=0;
+	int band[5], f;
+	char *str = malloc(strlen(orig)+1);
+	//char *cad = malloc(strlen(orig)+1);
+	int flag=0;
+
+	switch (modo)
+	{
+	case 1:
+			//char *str = malloc(strlen(orig)+1);
+			strcpy(str, orig);
+			args[0]= "./comando.out";
+			tmp=strtok(str, delim);
+			do{
+				if (num==max_args){
+				return max_args+1;
+				}
+				args[num]=tmp;
+				num++;
+				tmp=strtok(NULL, delim);
+			}while (tmp!=NULL);
+			return num;
+			break;
+	case 2:
+			strcpy(str, orig);
+			args[0]= "./comando.out";
+			tmp=strtok(str, delim);
+			do{
+				if (num==max_args)
+				return max_args+1;
+				args[num]=tmp;
+				num++;
+				tmp=strtok(NULL, delim);
+				band[0]=(strcmp(tmp,"|"));
+				band[1]=(strcmp(tmp,">"));
+				band[2]=(strcmp(tmp,"<"));
+				band[3]=(strcmp(tmp,">>"));
+				band[4]=(strcmp(tmp,"<<"));
+				if(band[0]==0){
+					f=0;
+					*IOFlag=1;
+				}
+				if(band[1]==0){
+					f=0;
+					*IOFlag=2;
+				}
+				if(band[2]==0){
+					f=0;
+					*IOFlag=3;
+				}
+				if(band[3]==0){
+					f=0;
+					*IOFlag=4;
+				}
+				if(band[4]==0){
+					f=0;
+					*IOFlag=5;
+				}	
+			}while (f);
+			return num;
+		break;
+	case 3:
+			strcpy(str, orig);
+			args[0]= "./comando.out";
+			tmp=strtok(str, delim);
+			do{
+				band[0]=strcmp(tmp,"|");
+				band[1]=strcmp(tmp,">");
+				band[2]=strcmp(tmp,"<");
+				band[3]=(strcmp(tmp,">>"));
+				band[4]=(strcmp(tmp,"<<"));
+				if (band[0]==0){
+					flag=1;
+					*IOFlag=1;
+					tmp=strtok(NULL, delim);
+				}
+				if (band[1]==0){
+					flag=1;
+					*IOFlag=2;
+					tmp=strtok(NULL, delim);
+				}
+				if (band[2]==0){
+					flag=1;
+					*IOFlag=3;
+					tmp=strtok(NULL, delim);
+				}
+				if(band[3]==0){
+					flag=1;
+					*IOFlag=4;
+				}
+				if(band[4]==0){
+					flag=1;
+					*IOFlag=5;
+				}
+				if (flag==1){
+					args[num]=tmp;
+					num++;
+				}
+
+				tmp=strtok(NULL, delim);
+			}while  (tmp!=NULL);
+			return num;
+
+		break;
+	case 4:
+			strcpy(str,orig);
+			tmp=strtok(str,delim);
+			tmp=strtok(NULL,"\0");
+			strcpy(cad,tmp);
+			return strlen(cad)+1;
+		
+	default:
+			break;
+	}
+
+
+
+
+
+}

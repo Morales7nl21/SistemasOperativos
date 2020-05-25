@@ -1,0 +1,17 @@
+total 200
+drwxr-xr-x  3 pg721oz pg721oz  4096 may 25 05:28 .
+drwxr-xr-x 16 pg721oz pg721oz  4096 may 25 05:14 ..
+-rw-------  1 pg721oz pg721oz     7 may 25 00:20 1-txt
+-rw-------  1 pg721oz pg721oz    53 may 25 05:09 1.txt
+-rw-------  1 pg721oz pg721oz     2 may 24 23:26 2.txt
+-rw-------  1 pg721oz pg721oz     0 may 25 05:28 33.txt
+-rw-r--r--  1 pg721oz pg721oz   708 may 15 18:23 ejercicio1.c
+-rwxr-xr-x  1 pg721oz pg721oz 26832 may 25 05:01 ejercicio2
+-rw-r--r--  1 pg721oz pg721oz  1449 may 15 19:23 ejercicio21.c
+-rw-r--r--  1 pg721oz pg721oz 20631 may 25 05:04 ejercicio2.c
+-rwxr-xr-x  1 pg721oz pg721oz 26832 may 25 05:28 proyectoFinalSO
+-rw-r--r--  1 pg721oz pg721oz 21506 may 25 05:28 proyectoFinalSO.c
+-rwxr-xr-x  1 pg721oz pg721oz 22536 may 25 01:45 ProyectoSO
+-rw-r--r--  1 pg721oz pg721oz 16943 may 25 01:45 ProyectoSO.c
+-rw-rw-r--  1 pg721oz pg721oz 17566 may 25 00:01 tempc.c
+drwxrwxr-x  2 pg721oz pg721oz  4096 may 25 00:13 .vscode
