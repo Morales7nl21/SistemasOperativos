@@ -19,19 +19,19 @@
 
 /*
 
-	Nota 1: por si lo estas viendo en github, se puede optimizar solo sacando el izquierdo de cada 
+	Nota 1: por si lo estas viendo en github, se puede optimizar solo sacando el izquierdo de cada
 	char*[] que contiene los argumentos que se buscan a ejecutar, para así solo mandar a ejecutar
 	los dos comandos de la izquierda, recortar el char * (comando entero) y con ello hacerlo recursivo
 
 	Nota 2: las funciones "extrae_argumentos_leftPipe", "extrae_argumentos_rightPipe",
 	"extrae_argumentos_M", "extrae_argumentos_d"  se pueden sustitur por funcion "extrae_argumentos_general"
 	Existen cambios donde se estaban trasladando esas funciones, mas abajo se explica como se pasarian.
-	
+
 	Nota 3: la funcion resolveOl se puede juntar con la funcion verifyCad para ahorrar lineas de código.
-	
-	Nota 4: las funciones onePiperedirect... y twoPiperedirect y twoPipeconcat... se pueden unir haciendo de esas 4 
+
+	Nota 4: las funciones onePiperedirect... y twoPiperedirect y twoPipeconcat... se pueden unir haciendo de esas 4
 	1 sola funcion en realidad ocupan lo mismo solo se tiene que mandar la funcion a sustituir.
-	
+
 
 	Nota 5: al poner "exit" cuando se esta ejecutando el programa no se cierra :0 no sabemos aun porque aiudaa
 
@@ -94,20 +94,18 @@ int main(int argc,  char *argv[]){
 	getcwd(dir,sizeof(dir));
 	strcpy(nombre,nameUser());
 
-	
+
 	do{
-		 
 		if(pipe(tuberia)== -1){
                 	perror("\n [-] ERROR PIPE \n");
                		exit(-1);
         	}
-		//pid_t 
+		//pid_t
 		pid=fork();
 		if( pid == -1){
 			perror("\n [-] ERROR FORK\n");
 		}
 		else if(pid==0){
-			
 			close(tuberia[1]);
 			read(tuberia[0],comando, sizeof(comando));
 			nargs=0;
@@ -120,41 +118,39 @@ int main(int argc,  char *argv[]){
 				{
 				case 0:
 					oneARG(comando);
-					
-				case 1:		
+				case 1:
 						nargsLP= extrae_argumentos_leftPipe(comando, " ", argsLeft, MAX_ARGS, &flagIO);
 						if(flagIO==1){
 							//Caso para 2 comandos establecidos por una pipe ejem: ls | wc
 							fflush(stdout);
-							onePipe(comando,&flagIO);	
-								
+							onePipe(comando,&flagIO);
+
 						}else if (flagIO == 2){
 							// Caso para 1 comandos con > ejem: ls -la > 1.txt
 							fflush(stdout);
 							redirectOutputToFile(comando,&flagIO);
-							
+
 						}else if(flagIO == 3){
 							//Caso para comando con < ejemmplo wc < 1.txt
 							fflush(stdout);
 							fflush(stdin);
 							redirectInputOfFile(comando,&flagIO);
-							
+
 						}else if (flagIO == 4){
 							// Caso para 1 comando con >> ejem: ls -la >> 1.txt
 							fflush(stdout);
 							concatredirectOutputToFile(comando,&flagIO);
-							
 						}
 						else if(flagIO == 5)
 						{
 							fflush(stdout);
 							fflush(stdin);
 							concatredirectInputOfFile(comando,&flagIO);
-							
-						}	
+
+						}
 					break;
 				case 2:
-						
+
 						if (((strcmp(args2[0],"|") == 0) && (strcmp(args2[1],"|") == 0)) != 0)
 						{
 							fflush(stdout);fflush(stdin);
@@ -162,25 +158,24 @@ int main(int argc,  char *argv[]){
 							twoPipes(comando,&flagIO);
 						}
 						if (((strcmp(args2[0],"|") == 0) && (strcmp(args2[1],">") == 0)) != 0)
-						{   
+						{
 							fflush(stdout);fflush(stdin);
 							onePipeRedirectOutputToFile(comando,&flagIO);
 
-							
+
 						}
 						if (((strcmp(args2[0],"|") == 0) && (strcmp(args2[1],">>") == 0)) != 0)
-						{   
+						{
 							fflush(stdout);fflush(stdin);
 							onePipeconcatredirectOutputToFile(comando,&flagIO);
 
-							
 						}
 				case 3:
 						if (((strcmp(args2[0],"|") == 0) && (strcmp(args2[1],"|") == 0) && (strcmp(args2[2],">") == 0)) != 0)
 						{
 							fflush(stdout);fflush(stdin);
 							twoPipesRedirectOutputToFile(comando,&flagIO);
-						
+
 						}
 						if (((strcmp(args2[0],"|") == 0) && (strcmp(args2[1],"|") == 0) && (strcmp(args2[2],">>") == 0)) != 0)
 						{
@@ -193,7 +188,7 @@ int main(int argc,  char *argv[]){
 				default:
 					break;
 				}
-					
+
 		}else{
 			close(tuberia[0]);
 			printf("\n%s@%s:~%s$ ", nombre,unameD.nodename, dir);
@@ -202,9 +197,12 @@ int main(int argc,  char *argv[]){
 			wait(&pid);
 			close(tuberia[1]);
 		}
-		
+		if(strcmp(comando,"exit")==0){
+			kill(pid, SIGTERM);
+		}
+
 	}while( strcmp(comando,"exit") != 0);
-	
+
 	return 0;
 }
 
@@ -274,7 +272,7 @@ char *leerLinea(char *comando){
 }
 int verifyCad(char **comand, int tam){
 	int priority=0;
-	
+
 	for(int i=0; i<tam; i++){
 		if(strcmp(comand[i],"|") == 0 || (strcmp(comand[i],">") ==0)  || (strcmp(comand[i],"<") ==0) || strcmp(comand[i],">>") == 0 || strcmp(comand[i],"<<") == 0){
 			priority++;
@@ -285,15 +283,13 @@ int verifyCad(char **comand, int tam){
 int resolveOl(char *orig, char*delim,char*args[],int max_args){
 	char *tmp,f=1,*tmp2;
 	int num=0,band[5];
-	
-	char *str=malloc(strlen(orig)+1);	
+	char *str=malloc(strlen(orig)+1);
 
 	strcpy(str, orig);
 	args[0]= "./comando.out";
 	tmp=strtok(str, delim);
 	do{
 
-	
 		band[0]=(strcmp(tmp,"|"));
 		band[1]=(strcmp(tmp,">"));
 		band[2]=(strcmp(tmp,"<"));
@@ -322,7 +318,7 @@ int resolveOl(char *orig, char*delim,char*args[],int max_args){
 		}
 		//tmp2=strtok(NULL, delim);
 		tmp=strtok(NULL, delim);
-			
+
 	}while (tmp!=NULL);
 	return num;
 
@@ -367,7 +363,7 @@ int extrae_argumentos_leftPipe(char *orig, char *delim, char *args[], int max_ar
 		if(band[4]==0){
 			f=0;
 			*IOFlag=5;
-		}	
+		}
 	}while (f);
 	return num;
 }
@@ -430,7 +426,6 @@ void removeChar(char *str, char value){
 			result[p] = str[i];
 			p++;
 		}
-		
 	}
 	if(p<strl_len)
 		str[p] = '\0';
@@ -453,7 +448,7 @@ void oneARG(char *comando){
 	int nargs=0 ,temp=0;
 	char *args[0];
 	int flag;
-	
+
 	nargs = extrae_argumentos_general(comando, " ", args, MAX_ARGS,NULL,1,NULL);
 	//priority=verifyCad(&args[0], nargs);
 	sleep(1);
@@ -507,7 +502,10 @@ void onePipe(char *comando, int *IOFlag){
 	fflush(stdout);
 	wait(&p1);
 	wait(&p2);
-	
+	//kill(p1, SIGKILL);
+	//kill(p2, SIGKILL);
+	exit(0);
+
 
 }
 void redirectOutputToFile(char *comando,int *IOFlag){
@@ -523,10 +521,10 @@ void redirectOutputToFile(char *comando,int *IOFlag){
 	nargsDP= extrae_argumentos_M(comando2,">",comando3);
 	removeChar(comando3,' ');
 	pid3=fork();
-	//printf("Archivo a re escribir:%s, flag: %i", comando3, flagIO);	
-	if (pid3 == 0){       
-		int fd = open(comando3, O_RDONLY | O_WRONLY | O_TRUNC);		
-		dup2(fd, 1);  
+	//printf("Archivo a re escribir:%s, flag: %i", comando3, flagIO);
+	if (pid3 == 0){
+		int fd = open(comando3, O_RDONLY | O_WRONLY | O_TRUNC);
+		dup2(fd, 1);
 		execvp(argsLeft[0], argsLeft);
 		close(fd);
 		exit(0);
@@ -534,75 +532,78 @@ void redirectOutputToFile(char *comando,int *IOFlag){
 	else{
 		wait(&pid3);
 	}
-	
 	strcpy(comando3," ");strcpy(comando2," ");strcpy(comando4," ");
-	
 
+	//kill(pid3, SIGKILL);
+	exit(0);
 }
 void redirectInputOfFile(char *comando,int *IOFlag){
 	int flagIO=*IOFlag, temp=0,fd;
-	pid_t pid3;
+	pid_t pidRIF;
 	char comando2[MAX_CHAR],comando3[MAX_CHAR], comando4[MAX_CHAR],*argsLeft[temp];
 	int nargsLP=0,nargsDP=0;
 	strcpy(comando2,comando);
-	strcpy(comando3,comando2);		
+	strcpy(comando3,comando2);
 	//printf("comando : %s ", comando2 );
 	nargsLP= extrae_argumentos_leftPipe(comando, " ", argsLeft, MAX_ARGS, &flagIO);
 	argsLeft[nargsLP]= (char *)0;
 	nargsDP= extrae_argumentos_M(comando2,"<",comando3);
-	removeChar(comando3,' ');		
-	pid3=fork();
-	//printf("Archivo a re escribir:%s, flag: %i", comando3, flagIO);	
-	if (pid3 == 0){       
+	removeChar(comando3,' ');
+	pidRIF=fork();
+	//printf("Archivo a re escribir:%s, flag: %i", comando3, flagIO);
+	if (pidRIF == 0){
 		int fd = open(comando3,O_RDWR , S_IRUSR);
 		close(0);
 		dup2(fd, 0);
 		close(fd);
-		execvp(argsLeft[0], argsLeft);				
+		execvp(argsLeft[0], argsLeft);
 		exit(0);
 	}
 	else{
-		wait(&pid3);
+		wait(&pidRIF);
 	}
 	strcpy(comando3," ");
 	strcpy(comando2," ");
 	strcpy(comando4," ");
-	
+	//kill(pidRIF, SIGKILL);
+	exit(0);
+
 }
 void concatredirectOutputToFile(char *comando,int *IOFlag){
-	
+
 	int flagIO=*IOFlag, temp=0,fd;
-	pid_t pid3;
+	pid_t pidCROF;
 	char comando2[MAX_CHAR],comando3[MAX_CHAR], comando4[MAX_CHAR],*argsLeft[temp];
 	int nargsLP=0,nargsDP=0;
 	strcpy(comando2,comando);
 	strcpy(comando3,comando2);
 	nargsLP= extrae_argumentos_leftPipe(comando, " ", argsLeft, MAX_ARGS, &flagIO);
 	argsLeft[nargsLP]= (char *)0;
-	nargsDP= extrae_argumentos_M(comando2,">",comando3);				
+	nargsDP= extrae_argumentos_M(comando2,">",comando3);
 	removeChar(comando3,' ');
 	removeChar(comando3,'>');
-	pid3=fork();
-	//printf("\nArchivo a re escribir:%s, flag: %i\n", comando3, flagIO);	
-	if (pid3 == 0){       
+	pidCROF=fork();
+	//printf("\nArchivo a re escribir:%s, flag: %i\n", comando3, flagIO);
+	if (pidCROF == 0){
 		int fd = open(comando3,O_RDWR| O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IWOTH);
-		dup2(fd, 1);  
+		dup2(fd, 1);
 		execvp(argsLeft[0], argsLeft);
 		close(fd);
 		exit(0);
 	}
 	else{
-		wait(&pid3);
+		wait(&pidCROF);
 	}
 	strcpy(comando," ");
 	strcpy(comando3," ");
 	strcpy(comando2," ");
 	strcpy(comando4," ");
-	
+	//kill(pidCROF, SIGKILL);
+	exit(0);
 }
 void concatredirectInputOfFile(char *comando,int *IOFlag){
 	int flagIO=*IOFlag, temp=0,fd;
-	pid_t pid3;
+	pid_t pidCRIF;
 	char comando2[MAX_CHAR],comando3[MAX_CHAR], comando4[MAX_CHAR],*argsLeft[temp];
 	int nargsLP=0,nargsDP=0;
 	strcpy(comando2,comando);
@@ -613,28 +614,30 @@ void concatredirectInputOfFile(char *comando,int *IOFlag){
 	nargsDP= extrae_argumentos_M(comando2,"<",comando3);
 	removeChar(comando3,' ');
 	removeChar(comando3,'<');
-	pid3=fork();
-	//printf("Archivo a re escribir:%s, flag: %i", comando3, flagIO);	
-	if (pid3 == 0){       
+	pidCRIF=fork();
+	//printf("Archivo a re escribir:%s, flag: %i", comando3, flagIO);
+	if (pidCRIF == 0){
 		int fd = open(comando3,O_RDWR , S_IRUSR);
 		close(0);
 		dup2(fd, 0);
 		close(fd);
-		execvp(argsLeft[0], argsLeft);				
+		execvp(argsLeft[0], argsLeft);
 		exit(0);
 	}
 	else{
-		wait(&pid3);
+		wait(&pidCRIF);
 	}
 	strcpy(comando3," ");
 	strcpy(comando2," ");
 	strcpy(comando4," ");
-	
+	//kill(pidCRIF, SIGKILL);
+	exit(0);
+
 }
 void twoPipes(char *comando, int *IOFlag){
 	//READ_END 0//WRITE END 1
 	//CASO PARA DOS PIPES | | EJ LS -LA | GREP U | WC
-	
+
 	int flagIO=*IOFlag, temp=0,fd,fd1[2], fd2[2],status2,nargsLP=0,nargsDP=0, nargsMP=0, nargsRP=0;
 	char comando2[MAX_CHAR],comando3[MAX_CHAR], comando4[MAX_CHAR],*argsRight[temp],*argsLeft[temp],*argsCenter[temp];
 	pid_t pidC2,pid3;
@@ -664,7 +667,7 @@ void twoPipes(char *comando, int *IOFlag){
 			dup2(fd2[1], STDOUT_FILENO);
 			close(fd2[1]);
 			argsCenter[nargsMP] = (char *)0;
-			execvp(argsCenter[0], argsCenter);	
+			execvp(argsCenter[0], argsCenter);
 		}else{
 			close(fd1[0]);
 			close(fd2[1]);
@@ -679,11 +682,14 @@ void twoPipes(char *comando, int *IOFlag){
 	}
 	wait(&pidC2);
 	wait(&pid3);
-	wait(&status2);	
-}	
+	wait(&status2);
+	//kill(pidC2, SIGKILL);
+	//kill(pid3, SIGKILL);
+	exit(0);
+}
 
 int extrae_argumentos_general(char *orig, char *delim, char *args[], int max_args, int* IOFlag, int modo,char *cad){
-	
+
 	char *tmp;
 	int num=0;
 	int band[5], f;
@@ -742,7 +748,7 @@ int extrae_argumentos_general(char *orig, char *delim, char *args[], int max_arg
 				if(band[4]==0){
 					f=0;
 					*IOFlag=5;
-				}	
+				}
 			}while (f);
 			return num;
 		break;
@@ -795,7 +801,6 @@ int extrae_argumentos_general(char *orig, char *delim, char *args[], int max_arg
 			tmp=strtok(NULL,"\0");
 			strcpy(cad,tmp);
 			return strlen(cad)+1;
-		
 	default:
 			break;
 	}
@@ -807,16 +812,16 @@ void twoPipesRedirectOutputToFile(char *comando, int *IOFlag){
 	char *str = malloc(strlen(comando)+1);
 	char *tmp;
 	char comando2[MAX_CHAR];
-	pid_t pidCASE3;		
+	pid_t pidCASE3;
 	strcpy(comando2,comando);
 	strcpy(str,comando);
 	tmp=strtok(str,">");
 	nargsRP=extrae_argumentos_M(comando,">",comando2);
 	removeChar(comando2,' ');
 	pidCASE3=fork();
-	if (pidCASE3 == 0){       
-		int fd = open(comando2, O_RDONLY | O_WRONLY | O_TRUNC);		
-		dup2(fd, 1);  
+	if (pidCASE3 == 0){
+		int fd = open(comando2, O_RDONLY | O_WRONLY | O_TRUNC);
+		dup2(fd, 1);
 		twoPipes(str,&flagIO);
 		close(fd);
 		exit(0);
@@ -824,7 +829,8 @@ void twoPipesRedirectOutputToFile(char *comando, int *IOFlag){
 	else{
 		wait(&pidCASE3);
 	}
-						
+	//kill(pidCASE3, SIGKILL);
+	exit(0);
 
 }
 void twoPipesConcatredirectOutputToFile(char *comando, int *IOFlag){
@@ -834,7 +840,7 @@ void twoPipesConcatredirectOutputToFile(char *comando, int *IOFlag){
 	char *str = malloc(strlen(comando)+1);
 	char *tmp;
 	char comando2[MAX_CHAR];
-	pid_t pidCASE3;	
+	pid_t pidCASE3;
 	strcpy(comando2,comando);
 	strcpy(str,comando);
 	tmp=strtok(str,">");
@@ -842,9 +848,9 @@ void twoPipesConcatredirectOutputToFile(char *comando, int *IOFlag){
 	removeChar(comando2,' ');
 	removeChar(comando2,'>');
 	pidCASE3=fork();
-	if (pidCASE3 == 0){       
-		int fd = open(comando2,O_RDWR| O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IWOTH);	
-		dup2(fd, 1);  
+	if (pidCASE3 == 0){
+		int fd = open(comando2,O_RDWR| O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IWOTH);
+		dup2(fd, 1);
 		twoPipes(str,&flagIO);
 		close(fd);
 		exit(0);
@@ -852,7 +858,9 @@ void twoPipesConcatredirectOutputToFile(char *comando, int *IOFlag){
 	else{
 		wait(&pidCASE3);
 	}
-						
+	//kill(pidCASE3, SIGKILL);
+	exit(0);
+
 }
 void onePipeconcatredirectOutputToFile(char *comando, int *IOFlag){
 
@@ -861,7 +869,7 @@ void onePipeconcatredirectOutputToFile(char *comando, int *IOFlag){
 	char *str = malloc(strlen(comando)+1);
 	char *tmp;
 	char comando2[MAX_CHAR];
-	pid_t pidCASE3;	
+	pid_t pidCASE3;
 	strcpy(comando2,comando);
 	strcpy(str,comando);
 	tmp=strtok(str,">");
@@ -869,9 +877,9 @@ void onePipeconcatredirectOutputToFile(char *comando, int *IOFlag){
 	removeChar(comando2,' ');
 	removeChar(comando2,'>');
 	pidCASE3=fork();
-	if (pidCASE3 == 0){       
-		int fd = open(comando2,O_RDWR| O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IWOTH);	
-		dup2(fd, 1);  
+	if (pidCASE3 == 0){
+		int fd = open(comando2,O_RDWR| O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IWOTH);
+		dup2(fd, 1);
 		onePipe(str,&flagIO);
 		close(fd);
 		exit(0);
@@ -879,7 +887,9 @@ void onePipeconcatredirectOutputToFile(char *comando, int *IOFlag){
 	else{
 		wait(&pidCASE3);
 	}
-						
+	//kill(pidCASE3, SIGKILL);
+	exit(0);
+
 }
 void onePipeRedirectOutputToFile(char *comando, int *IOFlag){
 
@@ -888,16 +898,16 @@ void onePipeRedirectOutputToFile(char *comando, int *IOFlag){
 	char *str = malloc(strlen(comando)+1);
 	char *tmp;
 	char comando2[MAX_CHAR];
-	pid_t pidCASE3;		
+	pid_t pidCASE3;
 	strcpy(comando2,comando);
 	strcpy(str,comando);
 	tmp=strtok(str,">");
 	nargsRP=extrae_argumentos_M(comando,">",comando2);
 	removeChar(comando2,' ');
 	pidCASE3=fork();
-	if (pidCASE3 == 0){       
-		int fd = open(comando2, O_RDONLY | O_WRONLY | O_TRUNC);		
-		dup2(fd, 1);  
+	if (pidCASE3 == 0){
+		int fd = open(comando2, O_RDONLY | O_WRONLY | O_TRUNC);
+		dup2(fd, 1);
 		onePipe(str,&flagIO);
 		close(fd);
 		exit(0);
@@ -905,5 +915,53 @@ void onePipeRedirectOutputToFile(char *comando, int *IOFlag){
 	else{
 		wait(&pidCASE3);
 	}
-						
+	//kill(pidCASE3, SIGKILL);
+	exit(0);
 }
+/*
+void nComand(char *comando, int *IOFlag, int count, char *tok[]){
+
+	char *argsLeft[0];
+	int flagIO=*IOFlag;
+	char *str = malloc(strlen(comando)+1);
+	int nMArgs;
+	int p[2];
+	pipe(p);
+	for ( int i = 0; i < count; i++)
+	{
+		int (*p)[2];
+		pipe(p[i]);
+		extrae_argumentos_leftPipe(comando,tok[i],argsLeft, MAX_ARGS, flagIO);
+		nMArgs=extrae_argumentos_M(comando,tok[i],comando);
+		
+			close(p[0]);
+			dup2(p[1],STDOUT_FILENO);
+			execvp(&argsLeft[0],argsLeft);
+
+		if(tok[i]=="|"){
+			
+
+		}else if (tok[i]==">")
+		{
+			
+		}else if (tok[i]=="<")
+		{
+			
+		}else if (tok[i]==">>")
+		{
+			
+		}else if (tok[i]=="<<")
+		{
+			
+		}
+		
+		
+		
+		
+
+	}
+	
+	
+
+}
+*/
